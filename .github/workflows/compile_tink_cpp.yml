@@ -4,17 +4,18 @@ on: [push]
 
 jobs:
  build:
-   runs-on: macos-latest
+  runs-on: macos-latest
 
-   steps:
-   - name: Checkout repository
-     uses: actions/checkout@v2
+  steps:
+  - name: Checkout repository
+    uses: actions/checkout@v2
 
-   - name: Set up Bazel
-     uses: bazelbuild/bazel-toolchains@v2.0.0
-     with:
-       bazel-version: '6.4.0'
+  - name: Install Bazel
+    run: |
+      curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+      echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+      sudo apt-get update && sudo apt-get install bazel
 
-   - name: Compile Tink C++ for iOS
-     run: |
-       bazel build --config=ios_x86_64 //path/to/your/target
+  - name: Compile Tink C++ for iOS
+    run: |
+      bazel build --config=ios_x86_64 //path/to/your/target
