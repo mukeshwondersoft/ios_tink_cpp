@@ -1,37 +1,20 @@
 name: Compile Tink C++ for iOS
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  build:
-    runs-on: macos-latest
+ build:
+   runs-on: macos-latest
 
-    steps:
-      - uses: actions/checkout@v3
+   steps:
+   - name: Checkout repository
+     uses: actions/checkout@v2
 
-      - name: Install Bazel
-        uses: bazelbuild/setup-bazelisk@v1
+   - name: Set up Bazel
+     uses: bazelbuild/bazel-toolchains@v2.0.0
+     with:
+       bazel-version: '6.4.0'
 
-      - name: Install Xcode command line tools
-        run: xcode-select --install
-
-      - name: Install dependencies
-        run: brew install automake libtool
-
-      - name: Configure Tink
-        run: ./configure
-
-      - name: Compile Tink for iOS
-        run: bazel build --config=ios //...
-
-      - name: Archive artifacts
-        run: |
-          mkdir artifacts
-          cp -r bazel-bin/* artifacts/
-          zip -r artifacts.zip artifacts
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: tink-ios-artifacts
-          path: artifacts.zip
+   - name: Compile Tink C++ for iOS
+     run: |
+       bazel build --config=ios_x86_64 //path/to/your/target
