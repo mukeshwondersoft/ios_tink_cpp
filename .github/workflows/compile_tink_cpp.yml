@@ -11,10 +11,15 @@ jobs:
      uses: actions/checkout@v2
 
    - name: Set up Bazel
-     uses: actions-setup-bazel/actions-setup-bazel@v1
-     with:
-      bazel-version: "6.4.0"
-     
+     run: |
+       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+       export BAZEL_VERSION=5.2.0
+       curl -fLO "https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-installer-darwin-x86_64.sh"
+       chmod +x "bazel-$BAZEL_VERSION-installer-darwin-x86_64.sh"
+       ./bazel-$BAZEL_VERSION-installer-darwin-x86_64.sh --user
+       export PATH="$HOME/bin:$PATH"
+       bazel --version
+       
    - name: Compile Tink C++ for iOS
      run: |
        bazel build --config=ios_x86_64 //path/to/your/target
