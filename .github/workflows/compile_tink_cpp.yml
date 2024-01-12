@@ -1,25 +1,37 @@
 name: Compile Tink C++ for iOS
-on: [push]
+
+on: [push, pull_request]
+
 jobs:
- build:
-   runs-on: ubuntu-latest
-   steps:
-     - name: Checkout repository
-       uses: actions/checkout@v2
+  build:
+    runs-on: macos-latest
 
-     - name: Install dependencies
-       run: |
-         sudo apt-get update
-         sudo apt-get install -y git cmake ninja-build clang
+    steps:
+      - uses: actions/checkout@v3
 
-     - name: Download Tink
-       run: |
-         wget https://github.com/tink-crypto/tink-cc/archive/refs/tags/v2.1.1.zip
-         unzip v2.1.1.zip
+      - name: Install Bazel
+        uses: bazelbuild/setup-bazelisk@v1
 
-     - name: Compile Tink
-       run: |
-         cd tink-cc-2.1.1
-         mkdir build && cd build
-         cmake ..
-         make
+      - name: Install Xcode command line tools
+        run: xcode-select --install
+
+      - name: Install dependencies
+        run: brew install automake libtool
+
+      - name: Configure Tink
+        run: ./configure
+
+      - name: Compile Tink for iOS
+        run: bazel build --config=ios //...
+
+      - name: Archive artifacts
+        run: |
+          mkdir artifacts
+          cp -r bazel-bin/* artifacts/
+          zip -r artifacts.zip artifacts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: tink-ios-artifacts
+          path: artifacts.zip
