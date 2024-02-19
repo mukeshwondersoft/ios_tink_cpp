@@ -12,14 +12,10 @@ jobs:
 
    - name: Set up Bazel
      run: |
-       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-       export BAZEL_VERSION=5.2.0
-       curl -fLO "https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-installer-darwin-x86_64.sh"
-       chmod +x "bazel-$BAZEL_VERSION-installer-darwin-x86_64.sh"
-       ./bazel-$BAZEL_VERSION-installer-darwin-x86_64.sh --user
-       export PATH="$HOME/bin:$PATH"
-       bazel --version
-       
-   - name: Compile Tink C++ for iOS
-     run: |
-       bazel build --config=ios_x86_64 //path/to/your/target
+       git clone https://github.com/tink-crypto/tink.git
+       cd tink
+       mkdir build
+       cd build
+       cmake .. -DBUILD_SHARED_LIBS=ON \
+        -DCMAKE_INSTALL_PREFIX=/path/to/install/directory \
+        -DTINK_BUILD_TOOLS=OFF # Optional: skip building tools
