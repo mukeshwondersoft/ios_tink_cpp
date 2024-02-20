@@ -18,5 +18,7 @@ jobs:
        cd build
        cmake .. -DBUILD_SHARED_LIBS=ON \
         -DCMAKE_INSTALL_PREFIX=/path/to/install/directory \
-        -DTINK_BUILD_TOOLS=OFF 
+        -DTINK_BUILD_TOOLS=OFF
        ls
+       make
+       make install
