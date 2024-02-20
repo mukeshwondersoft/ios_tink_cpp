@@ -9,12 +9,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Bazel
-        uses: bazelbuild/setup-bazel@v1
-        with:
-          bazel-version: 'latest'
+        uses: bazelbuild/setup-bazelisk@v3
 
       - name: Configure Bazel for iOS
         run: |
