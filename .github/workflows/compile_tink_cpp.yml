@@ -1,40 +1,32 @@
-name: Build and Download Tink for iOS
+name: Cross-compile Tink for iOS
 
 on:
   push:
-    branches:
-      - main
-
-env:
-  XCODE_PRODUCT_NAME: Tink
-  XCODE_SCHEME: Tink
-  IPHONEOS_DEPLOYMENT_TARGET: 14.0
-  SIMULATOR_DEPLOYMENT_TARGET: 14.0
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: |
-          brew install cmake openssl
-          cmake -Bbuild -H. \
-              -DTINK_BUILD_SHARED_LIBRARIES=OFF \
-              -DTINK_PLATFORM=IOS \
-              -DTINK_BUILD_GFLAGS=OFF
-          make -C build -j $(sysctl -n hw.logicalcpu) install
-
-      - name: Create xcframework
-        run: |
-          cd build/lib/ios
-          xcodebuild -create-xcframework \
-               -library tink.framework \
-               -output tink.xcframework
-
-      - name: Download xcframework
-        uses: actions/download-artifact@v3
+      - name: Install Bazel
+        uses: bazelbuild/setup-bazel@v1
         with:
-          name: tink-ios-xcframework
-          path: /output
+          bazel-version: 'latest'
+
+      - name: Configure Bazel for iOS
+        run: |
+          echo "build --ios_multi_cpus=arm64" >> .bazelrc
+          echo "build --ios_minimum_os_version=10.0" >> .bazelrc
+
+      - name: Build Tink for iOS
+        run: |
+          bazel build --config=ios_arm64 //:tink
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: tink-ios
+          path: bazel-bin/tink.a
