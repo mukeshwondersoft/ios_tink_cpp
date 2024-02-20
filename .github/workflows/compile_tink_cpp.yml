@@ -10,6 +10,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: 'google/tink'
+          path: 'tink'
 
       - name: Install Bazel
         uses: bazelbuild/setup-bazelisk@v3
