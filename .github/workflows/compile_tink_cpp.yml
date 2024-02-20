@@ -1,33 +1,29 @@
-name: Cross-compile Tink for iOS
+name: Build Tink for iOS
 
-on:
-  push:
-    branches: [ main ]
+on: [push]
 
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          repository: 'google/tink'
-          path: 'tink'
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Install Bazel
-        uses: bazelbuild/setup-bazelisk@v3
+    - name: Install Bazel
+      uses: bazelbuild/setup-bazelisk@v3
 
-      - name: Configure Bazel for iOS
-        run: |
-          echo "build --ios_multi_cpus=arm64" >> .bazelrc
-          echo "build --ios_minimum_os_version=10.0" >> .bazelrc
+    - name: Set up environment
+      run: |
+        export XCODE_VERSION=9.2
+        export IOS_SDK=11.2
 
-      - name: Build Tink for iOS
-        run: |
-          bazel build --config=ios_arm64 //:tink
+    - name: Clone Tink repository
+      run: git clone https://github.com/google/tink/
 
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: tink-ios
-          path: bazel-bin/tink.a
+    - name: Change to Tink directory
+      run: cd tink
+
+    - name: Build Tink for iOS
+      run: |
+        bazel build -c opt --ios_multi_cpus=i386,x86_64,armv7,arm64 --xcode_version="${XCODE_VERSION}" --ios_sdk_version="${IOS_SDK}" //objc:Tink_framework
