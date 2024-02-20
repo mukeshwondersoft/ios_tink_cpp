@@ -1,24 +1,40 @@
-name: Compile Tink C++ for iOS
+name: Build and Download Tink for iOS
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+
+env:
+  XCODE_PRODUCT_NAME: Tink
+  XCODE_SCHEME: Tink
+  IPHONEOS_DEPLOYMENT_TARGET: 14.0
+  SIMULATOR_DEPLOYMENT_TARGET: 14.0
 
 jobs:
- build:
-   runs-on: macos-latest
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
 
-   steps:
-   - name: Checkout repository
-     uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          brew install cmake openssl
+          cmake -Bbuild -H. \
+              -DTINK_BUILD_SHARED_LIBRARIES=OFF \
+              -DTINK_PLATFORM=IOS \
+              -DTINK_BUILD_GFLAGS=OFF
+          make -C build -j $(sysctl -n hw.logicalcpu) install
 
-   - name: Set up Bazel
-     run: |
-       git clone https://github.com/tink-crypto/tink.git
-       cd tink
-       mkdir build
-       cd build
-       cmake .. -DBUILD_SHARED_LIBS=ON \
-        -DCMAKE_INSTALL_PREFIX=/path/to/install/directory \
-        -DTINK_BUILD_TOOLS=OFF
-       ls
-       make
-       make install
+      - name: Create xcframework
+        run: |
+          cd build/lib/ios
+          xcodebuild -create-xcframework \
+               -library tink.framework \
+               -output tink.xcframework
+
+      - name: Download xcframework
+        uses: actions/download-artifact@v3
+        with:
+          name: tink-ios-xcframework
+          path: /output
